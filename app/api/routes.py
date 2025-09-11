@@ -42,6 +42,7 @@ class LLMResponse(BaseModel):
     locations: Optional[List[LocationResponse]] = None
     directions: Optional[DirectionsResponse] = None
     map_html: Optional[str] = None
+    web_url: Optional[str] = None
 
 @router.post("/llm", response_model=LLMResponse)
 async def process_llm_request(request: LLMRequest):
@@ -54,18 +55,27 @@ async def process_llm_request(request: LLMRequest):
         locations = None
         directions = None
         map_html = None
+        web_url = None
         
         if llm_result.get("location_query"):
             try:
-                locations = maps_client.search_place(llm_result["location_query"])
+                location_response = maps_client.search_place(llm_result["location_query"])
                 
-                # Generate map HTML if location found
-                if locations and locations.places:
-                    map_html = maps_client.generate_map_html(locations.places[0])
+                # Check if we have a web fallback
+                if location_response and location_response.status == "WEB_FALLBACK":
+                    web_url = location_response.web_url
+                    # Don't generate map HTML for web fallback
+                    map_html = None
+                    locations = [location_response]  # Wrap in list
+                elif location_response and location_response.places:
+                    # Generate map HTML for regular locations
+                    map_html = maps_client.generate_map_html(location_response.places[0])
+                    locations = [location_response]  # Wrap in list
             except Exception as e:
                 print(f"Error processing location query: {str(e)}")
-                # Ensure locations is None if there's an error
-                locations = None
+                # Return the web fallback response when API fails
+                location_response = maps_client.search_place(llm_result["location_query"])
+                locations = [location_response]  # Wrap in list
         
         # If directions were requested, get them
         if llm_result.get("directions_query"):
@@ -84,7 +94,8 @@ async def process_llm_request(request: LLMRequest):
             text=llm_result.get("response", ""),
             locations=locations,
             directions=directions,
-            map_html=map_html
+            map_html=map_html,
+            web_url=web_url
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

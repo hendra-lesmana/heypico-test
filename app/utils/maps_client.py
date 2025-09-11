@@ -78,26 +78,28 @@ class MapsClient:
                 status=places_result.get("status", "UNKNOWN")
             )
         except Exception as e:
-            # Log the error and return an empty response
+            # Log the error and return a response with web link fallback
             print(f"Error searching for place: {str(e)}")
-            # Return a mock response when API fails with REQUEST_DENIED
-            if "REQUEST_DENIED" in str(e):
-                return LocationResponse(
-                    places=[
-                        Place(
-                            place_id="mock-place-id",
-                            name=f"Mock location for: {query}",
-                            formatted_address="123 Mock Street, Mock City",
-                            geometry=Geometry(lat=37.7749, lng=-122.4194),  # San Francisco coordinates
-                            types=["point_of_interest"],
-                            rating=4.5,
-                            user_ratings_total=100,
-                            photos=None
-                        )
-                    ],
-                    status="OK"
-                )
-            return LocationResponse(places=[], status="ERROR")
+            # Generate Google Maps web search URL
+            web_url = f"https://www.google.com/maps/search/{query.replace(' ', '+')}"
+            
+            # Return a response with web link when API fails
+            return LocationResponse(
+                places=[
+                    Place(
+                        place_id="web-fallback",
+                        name=f"Search '{query}' on Google Maps",
+                        formatted_address="Click to open in Google Maps",
+                        geometry=Geometry(lat=37.7749, lng=-122.4194),  # Default coordinates
+                        types=["web_link"],
+                        rating=None,
+                        user_ratings_total=None,
+                        photos=None
+                    )
+                ],
+                status="WEB_FALLBACK",
+                web_url=web_url
+            )
     
     def get_directions(self, origin: str, destination: str, mode: str = "driving") -> DirectionsResponse:
         """Get directions from origin to destination"""

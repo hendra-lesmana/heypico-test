@@ -229,9 +229,67 @@
                     // Add bot response to chat
                     addMessage(data.text);
                     
-                    // Update map if available
+                    // Update map if available, or show web link
                     if (data.map_html) {
                         updateMap(data.map_html);
+                    } else if (data.web_url) {
+                        // Create a link to Google Maps web when API is unavailable
+                        const webMapHtml = `
+                            <!DOCTYPE html>
+                            <html>
+                            <head>
+                                <style>
+                                    body { 
+                                        font-family: Arial, sans-serif; 
+                                        display: flex; 
+                                        flex-direction: column; 
+                                        align-items: center; 
+                                        justify-content: center; 
+                                        height: 100vh; 
+                                        margin: 0; 
+                                        background-color: #f8f9fa; 
+                                    }
+                                    .map-fallback {
+                                        text-align: center; 
+                                        padding: 40px; 
+                                        border: 2px dashed #007bff; 
+                                        border-radius: 10px; 
+                                        background-color: white; 
+                                        max-width: 400px; 
+                                    }
+                                    .map-fallback h3 { 
+                                        color: #007bff; 
+                                        margin-bottom: 15px; 
+                                    }
+                                    .map-fallback p { 
+                                        color: #6c757d; 
+                                        margin-bottom: 20px; 
+                                    }
+                                    .map-link { 
+                                        display: inline-block; 
+                                        padding: 12px 24px; 
+                                        background-color: #007bff; 
+                                        color: white; 
+                                        text-decoration: none; 
+                                        border-radius: 5px; 
+                                        font-weight: bold; 
+                                        transition: background-color 0.3s; 
+                                    }
+                                    .map-link:hover { 
+                                        background-color: #0056b3; 
+                                    }
+                                </style>
+                            </head>
+                            <body>
+                                <div class="map-fallback">
+                                    <h3>🗺️ Map Preview Unavailable</h3>
+                                    <p>Google Maps API is not configured. You can view this location on Google Maps instead.</p>
+                                    <a href="${data.web_url}" target="_blank" class="map-link">Open in Google Maps</a>
+                                </div>
+                            </body>
+                            </html>
+                        `;
+                        updateMap(webMapHtml);
                     }
                     
                     // Update directions panel if available

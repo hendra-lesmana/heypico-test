@@ -21,6 +21,7 @@ class Place(BaseModel):
 class LocationResponse(BaseModel):
     places: List[Place] = []
     status: str
+    web_url: Optional[str] = None
 
 class Step(BaseModel):
     distance: Dict[str, Any]
