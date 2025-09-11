@@ -56,11 +56,16 @@ async def process_llm_request(request: LLMRequest):
         map_html = None
         
         if llm_result.get("location_query"):
-            locations = maps_client.search_place(llm_result["location_query"])
-            
-            # Generate map HTML if location found
-            if locations and locations.places:
-                map_html = maps_client.generate_map_html(locations.places[0])
+            try:
+                locations = maps_client.search_place(llm_result["location_query"])
+                
+                # Generate map HTML if location found
+                if locations and locations.places:
+                    map_html = maps_client.generate_map_html(locations.places[0])
+            except Exception as e:
+                print(f"Error processing location query: {str(e)}")
+                # Ensure locations is None if there's an error
+                locations = None
         
         # If directions were requested, get them
         if llm_result.get("directions_query"):

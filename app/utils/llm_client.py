@@ -19,10 +19,10 @@ class LLMClient:
     def __init__(self):
         self.host = os.getenv("OLLAMA_HOST", "http://localhost")
         self.port = os.getenv("OLLAMA_PORT", "11434")
-        self.model = os.getenv("OLLAMA_MODEL", "llama3")
+        self.model = os.getenv("OLLAMA_MODEL", "deepseek/deepseek-chat-v3.1:free")
         self.api_url = f"{self.host}:{self.port}/api/generate"
         self.available = REQUESTS_AVAILABLE
-    
+        print(self.api_url)
     def process_prompt(self, prompt: str) -> Dict[str, Any]:
         """Process a natural language prompt through the LLM to extract location information"""
         # Check if requests is available
@@ -128,6 +128,13 @@ class LLMClient:
             # Assume it's a location search
             # Remove common question words and phrases
             clean_prompt = re.sub(r'^(where is|find|show me|locate|what is|tell me about)\s+', '', prompt, flags=re.IGNORECASE)
-            response["location_query"] = clean_prompt
-        
+            # Check if the clean prompt is not empty
+            if clean_prompt.strip():
+                response["location_query"] = clean_prompt
+            else:
+                # If clean prompt is empty, use the original prompt but mark it as a generic query
+                # This will help avoid validation errors when the prompt is too vague
+                response["response"] = f"I can help you with maps, but I'll need more specific information. Are you looking for a particular location, or do you need directions between two places?"
+                # Don't set location_query for vague prompts to avoid validation errors
+        print(response)
         return response
