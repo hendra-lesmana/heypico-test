@@ -2,6 +2,8 @@
 
 This project integrates a Local Language Model (LLM) with Google Maps API to provide location information and directions based on natural language queries. Users can ask questions about places to visit, eat, or get directions, and the application will display the relevant information on an embedded Google Map.
 
+![App Showcase](showcase.png)
+
 ## Features
 
 - Natural language processing for location and direction queries
